@@ -4,95 +4,6 @@ User enumeration of Microsoft Teams users. TeamsEnum is a Python script that all
 
 It supports multiple authentication mechanisms and can be used with personal or corporate accounts.
 
-## User account types
-
-### Corporate accounts
-
-These are accounts that are associated with an Azure Active Directory Tenant.
-
-To enumerate users and their presence status, the following endpoints are used:
-
-- teams.microsoft.com
-- presence.teams.microsoft.com
-
-### Personal accounts
-
-These are personal accounts that are not associated with an Azure Active Directory Tenant.
-Common examples are consumer accounts belonging to outlook.com, outlook.de or hotmail.com.
-
-To enumerate users and their presence status, the following endpoints are used:
-
-- teams.live.com
-- presence.teams.live.com
-
-Password authentication cannot be used for Microsoft Accounts ("MSA" or formerly "LiveID") but only for Work and school accounts (https://github.com/AzureAD/microsoft-authentication-library-for-python/wiki/Username-Password-Authentication).
-
-## Authentication
-
-TeamsEnum requires an authenticated session. Three different authentication mechanisms are available, of which one needs to be selected using the `-a` parameter:
-
-### Password-based authentication
-
-Password-based authentication could be used for all non-personal accounts that don't require MFA.
-
-If not passed via command-line argument -p, the password can be entered interactively, which circumvents information disclosure in history files:
-
-```s
-$ python3 teamsenum.py -a password -u <username> -e <target>
-
-[...]
-   
-[~] Checking account type
-[~] Account type is: corporate
-[~] Attempting to login with provided credentials
-[~] Please enter the password to authenticate:
-<password>
-```
-
-As stated above, password-based authentication can't be used with personal accounts.
-
-### Device Code authentication flow
-
-This option is suitable if MFA is required or if password-based authentication is not possible. The mechanism is based on the `OAuth 2.0 Device Authorization Grant` (https://www.rfc-editor.org/rfc/rfc8628, https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-device-code).
-
-To initiate device code authentication, just provide the -a devicecode parameter and the username:
-
-```s
-$ python3 teamsenum.py -a devicecode -u <username> -e <target>
-
-[...]
-   
-[~] Checking account type
-[~] Account type is: personal
-[~] To sign in, use a web browser to open the page https://www.microsoft.com/link and enter the code UZZRW3EW to authenticate.
-```
-
-Afterwards open the URL within a web browser that has internet access and enter the code:
-
-![Device Code authentication](img/devicecode.png)
-
-### Token-based authentication
-
-This method can be used if you already have access tokens available.
-
-Upon authentication both, personal and corporate accounts use a Bearer token (originates from the `Authorization` HTTP header field) to authenticate towards the Teams/Live endpoint.
-
-The Bearer token for corporate accounts is a classic JWT, while the Bearer token for personal accounts is just an encoded binary blob.
-
-While the Bearer token is the only requirement for corporate accounts, all personal accounts also require an additional `X-Skypetoken` HTTP header.
-
-If you want to use token based authentication, the easiest way is to sign into Teams from a web browser and fetch the tokens from the Local Storage view of the developer tools.
-
-```s
-$ python3 teamsenum.py -a token -t eyJhbGciOiJSUzI1NiIsImtpZCI6I...tr8i530AJMwI= -e <target>
-
-[...]
-   
-[~] Starting user enumeration
-
-[-] <target>
-```
-
 ## Requirements
 
 - python3 >= 3.6
@@ -107,10 +18,15 @@ git clone https://github.com/sse-secure-systems/TeamsEnum.git
 cd TeamsEnum`
 pip3 install -r requirements.txt
 ```
+
 ## Getting started
+
 Find existing users via list of existing email accounts in `list.txt`:
+
 ```bash
 $ python3 teamsenum.py -a <password> -u <username> -f list.txt
+```
+
 ## Usage scenarios
 
 ### Find existing users
@@ -252,6 +168,95 @@ This example includes a `outOfOfficeNote` that gives insights into the work sche
 Please note that if you use personal accounts for enumeration you probably won't get meaningful results when querying the presence API. This is because personal accounts wouldn't see the presence of other user accounts unless there has been an established bi-directional communication beforehand.
 
 So if you rely on presence information you should use corporate accounts for authentication.
+
+## User account types
+
+### Corporate accounts
+
+These are accounts that are associated with an Azure Active Directory Tenant.
+
+To enumerate users and their presence status, the following endpoints are used:
+
+- teams.microsoft.com
+- presence.teams.microsoft.com
+
+### Personal accounts
+
+These are personal accounts that are not associated with an Azure Active Directory Tenant.
+Common examples are consumer accounts belonging to outlook.com, outlook.de or hotmail.com.
+
+To enumerate users and their presence status, the following endpoints are used:
+
+- teams.live.com
+- presence.teams.live.com
+
+Password authentication cannot be used for Microsoft Accounts ("MSA" or formerly "LiveID") but only for Work and school accounts (https://github.com/AzureAD/microsoft-authentication-library-for-python/wiki/Username-Password-Authentication).
+
+## Authentication
+
+TeamsEnum requires an authenticated session. Three different authentication mechanisms are available, of which one needs to be selected using the `-a` parameter:
+
+### Password-based authentication
+
+Password-based authentication could be used for all non-personal accounts that don't require MFA.
+
+If not passed via command-line argument -p, the password can be entered interactively, which circumvents information disclosure in history files:
+
+```s
+$ python3 teamsenum.py -a password -u <username> -e <target>
+
+[...]
+   
+[~] Checking account type
+[~] Account type is: corporate
+[~] Attempting to login with provided credentials
+[~] Please enter the password to authenticate:
+<password>
+```
+
+As stated above, password-based authentication can't be used with personal accounts.
+
+### Device Code authentication flow
+
+This option is suitable if MFA is required or if password-based authentication is not possible. The mechanism is based on the `OAuth 2.0 Device Authorization Grant` (https://www.rfc-editor.org/rfc/rfc8628, https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-device-code).
+
+To initiate device code authentication, just provide the -a devicecode parameter and the username:
+
+```s
+$ python3 teamsenum.py -a devicecode -u <username> -e <target>
+
+[...]
+   
+[~] Checking account type
+[~] Account type is: personal
+[~] To sign in, use a web browser to open the page https://www.microsoft.com/link and enter the code UZZRW3EW to authenticate.
+```
+
+Afterwards open the URL within a web browser that has internet access and enter the code:
+
+![Device Code authentication](img/devicecode.png)
+
+### Token-based authentication
+
+This method can be used if you already have access tokens available.
+
+Upon authentication both, personal and corporate accounts use a Bearer token (originates from the `Authorization` HTTP header field) to authenticate towards the Teams/Live endpoint.
+
+The Bearer token for corporate accounts is a classic JWT, while the Bearer token for personal accounts is just an encoded binary blob.
+
+While the Bearer token is the only requirement for corporate accounts, all personal accounts also require an additional `X-Skypetoken` HTTP header.
+
+If you want to use token based authentication, the easiest way is to sign into Teams from a web browser and fetch the tokens from the Local Storage view of the developer tools.
+
+```s
+$ python3 teamsenum.py -a token -t eyJhbGciOiJSUzI1NiIsImtpZCI6I...tr8i530AJMwI= -e <target>
+
+[...]
+   
+[~] Starting user enumeration
+
+[-] <target>
+```
 
 ## Limitations
 
