@@ -102,7 +102,7 @@ $ python3 teamsenum.py -a token -t eyJhbGciOiJSUzI1NiIsImtpZCI6I...tr8i530AJMwI=
 
 Installation of TeamsEnum is straight forward:
 
-```
+```bash
 git clone https://github.com/sse-secure-systems/TeamsEnum.git
 cd TeamsEnum`
 pip3 install -r requirements.txt
