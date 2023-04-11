@@ -1,6 +1,6 @@
 # TeamsEnum
 
-Python script to enumerate Teams users and their online status.
+User enumeration of Microsoft Teams users. TeamsEnum is a Python script that allows to find existing users and their online status.
 
 It supports multiple authentication mechanisms and can be used with personal or corporate accounts.
 
@@ -91,7 +91,21 @@ $ python3 teamsenum.py -a token -t eyJhbGciOiJSUzI1NiIsImtpZCI6I...tr8i530AJMwI=
 [~] Starting user enumeration
 
 [-] <target>
+```
 
+## Requirements
+
+- python3 >= 3.6
+- dependencies within requirements.txt
+
+## Installation
+
+Installation of TeamsEnum is straight forward:
+
+```
+git clone https://github.com/sse-secure-systems/TeamsEnum.git
+cd TeamsEnum`
+pip3 install -r requirements.txt
 ```
 
 ## Usage scenarios
