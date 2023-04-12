@@ -24,7 +24,7 @@ pip3 install -r requirements.txt
 Find existing users via list of existing email accounts in `list.txt`:
 
 ```bash
-$ python3 teamsenum.py -a <password> -u <username> -f list.txt
+$ python3 teamsenum.py -a password -u <username> -f list.txt
 ```
 
 ## Usage scenarios
