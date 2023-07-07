@@ -6,6 +6,7 @@ import json
 import os
 import teamsenum.auth
 import time
+import threading
 from teamsenum.auth import p_success, p_err, p_warn, p_normal, p_info
 from teamsenum.enum import TeamsUserEnumerator
 
@@ -21,6 +22,9 @@ def banner(__version__):
    v%s developed by %s
    %s
    """ % (__version__, "@_bka_", "SSE | Secure Systems Engineering GmbH"))
+
+def enumerate_user(enum, email, accounttype, presence, outfile):
+   enum.check_user(email.strip(), accounttype, presence=presence, outfile=outfile)
 
 if __name__ == "__main__":
    """
@@ -52,6 +56,9 @@ if __name__ == "__main__":
    parser_inputdata_group = parser.add_mutually_exclusive_group(required=True)
    parser_inputdata_group.add_argument('-e', '--targetemail', dest='email', type=str, required=False, help='Single target email address')
    parser_inputdata_group.add_argument('-f', '--file', dest='file', type=str, required=False, help='Input file containing a list of target email addresses')
+
+   parser.add_argument('-n', '--threads', dest='num_threads', type=int, required=False, default=10, help='Number of threads to use for enumeration. Default: 10')
+
    args = parser.parse_args()
 
    if args.outfile:
@@ -63,17 +70,30 @@ if __name__ == "__main__":
 
    enum = TeamsUserEnumerator(skypetoken, bearertoken, teams_enrolled)
 
-   if (args.email):
+   if args.email:
       emails = [args.email]
 
-   if (args.file):
+   if args.file:
       with open(args.file) as f:
          emails = f.readlines()
 
    p_info("Starting user enumeration\n")
+   threads = []
    for email in emails:
       time.sleep(args.delay)
-      enum.check_user(email.strip(), accounttype, presence=True, outfile=fd)
+      thread = threading.Thread(target=enumerate_user, args=(enum, email, accounttype, True, fd))
+      threads.append(thread)
+      thread.start()
+
+      # Limit the number of active threads
+      if len(threads) >= args.num_threads:
+         for t in threads:
+            t.join()
+         threads = []
+
+   # Wait for the remaining threads to finish
+   for thread in threads:
+      thread.join()
 
    if fd:
       fd.close()
