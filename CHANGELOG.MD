@@ -2,7 +2,7 @@
 
 **1.0.2 (16.01.2024)**
 
-- Fixed handling of responses after checking invalid email adresses ([pull/3](https://github.com/sse-secure-systems/TeamsEnum/pull/3))
+- Fixed handling of responses after checking invalid email adresses ([pull/3](https://github.com/sse-secure-systems/TeamsEnum/pull/4))
 
 **1.0.1 (11.07.2023)**
 
