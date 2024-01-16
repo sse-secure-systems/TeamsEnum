@@ -79,11 +79,12 @@ class TeamsUserEnumerator:
 
       if content.status_code != 200:
          p_warn("Unable to enumerate user %s. Invalid target email address?" % (email))
+         return
 
       user_profile = json.loads(content.text)
       user['info'] = user_profile
 
-      if len(user_profile) > 0:
+      if len(user_profile) > 0 and isinstance(user_profile, list):
          user['exists'] = True
          if presence and "mri" in user_profile[0]:
             mri = user_profile[0].get('mri')
@@ -146,7 +147,7 @@ class TeamsUserEnumerator:
          user['info'] = user_profile
          if json_content.get(item).get("status") == "Success":
             user['exists'] = True
-            if presence and len(user_profile) > 0 and "mri" in user_profile[0]:
+            if presence and len(user_profile) > 0 and isinstance(user_profile, list) and "mri" in user_profile[0]:
                mri = user_profile[0].get('mri')
                presence = self.check_live_presence(mri)
                user['presence'] = presence
