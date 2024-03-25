@@ -3,11 +3,12 @@
 import requests
 import json
 from teamsenum.utils import p_success, p_err, p_warn, p_normal, p_file
+from teamsenum.auth import logon_with_accesstoken
 
 class TeamsUserEnumerator:
    """ Class that handles enumeration of users that use Microsoft Teams either from a personal, or corporate account  """
 
-   def __init__(self, skypetoken, bearertoken, teams_enrolled):
+   def __init__(self, skypetoken, bearertoken, teams_enrolled, refresh_token, auth_app, auth_metadata):
       """
       Constructor that accepts authentication tokens for use during enumeration
 
@@ -22,6 +23,9 @@ class TeamsUserEnumerator:
       self.skypetoken = skypetoken
       self.bearertoken = bearertoken
       self.teams_enrolled = teams_enrolled
+      self.refresh_token = refresh_token
+      self.auth_app = auth_app
+      self.auth_metadata = auth_metadata
 
    def check_user(self, email, type, presence=False, outfile=None):
       """
@@ -41,7 +45,7 @@ class TeamsUserEnumerator:
       elif type == "corporate":
          self.check_teams_user(email, presence, outfile)
 
-   def check_teams_user(self, email, presence=False, outfile=None):
+   def check_teams_user(self, email, presence=False, outfile=None, recursive_call=False):
       """
       Checks the existence and properties of a user, using the teams.microsoft.com endpoint
 
@@ -75,7 +79,15 @@ class TeamsUserEnumerator:
          return
 
       if content.status_code == 401:
-         p_warn("Unable to enumerate user. Is the access token valid?", exit=True)
+         if( not recursive_call and self.refresh_token ):
+            p_warn("Unable to enumerate user. Trying to get a new access token...")
+            result = logon_with_accesstoken(self.auth_metadata, self.auth_app)
+            if( 'access_token' in result ):
+               p_warn("Got new access token. Rechecking the user...")
+               self.bearertoken = result['access_token']
+               return self.check_teams_user(email, presence=presence, outfile=outfile, recursive_call=True)
+         else:
+            p_warn("Unable to enumerate user. Is the access token valid?", exit=True)
 
       if content.status_code != 200:
          p_warn("Unable to enumerate user %s. Invalid target email address?" % (email))

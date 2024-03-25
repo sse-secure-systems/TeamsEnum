@@ -66,9 +66,8 @@ if __name__ == "__main__":
    else:
       fd = None
 
-   accounttype, bearertoken, skypetoken, teams_enrolled = teamsenum.auth.do_logon(args)
-
-   enum = TeamsUserEnumerator(skypetoken, bearertoken, teams_enrolled)
+   accounttype, bearertoken, skypetoken, teams_enrolled, refresh_token, auth_app, auth_metadata = teamsenum.auth.do_logon(args)
+   enum = TeamsUserEnumerator(skypetoken, bearertoken, teams_enrolled, refresh_token, auth_app, auth_metadata)
 
    if args.email:
       emails = [args.email]
