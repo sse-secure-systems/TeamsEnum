@@ -215,7 +215,7 @@ def logon_with_devicecode(auth_metadata):
 
    return result, app
 
-def logon_with_accesstoken(auth_metadata, app):
+def logon_with_accesstoken(auth_metadata, app, scope_list=None):
    """
    Attempts to log in based on an access token. This step is required to acquire a X-Skypetoken using the previously acquired Bearer token
 
@@ -226,10 +226,18 @@ def logon_with_accesstoken(auth_metadata, app):
        Access token (dict): An object containing access tokens
    """
 
+   scopes = []
+   if( scope_list ):
+      scopes = scope_list
+   elif( 'scope' in auth_metadata ):
+      scopes = auth_metadata['scope'].split(',')
+   else:
+      p_warn("Either scopes or authentication metadata need to be provided to authenticate with the existing token", exit=True)
+   
    try:
       # Fetches cached logins
       accounts = app.get_accounts()
-      result = app.acquire_token_silent(scopes=["service::api.fl.spaces.skype.com::MBI_SSL openid profile"], account=accounts[0])
+      result = app.acquire_token_silent(scopes=scopes, account=accounts[0])
    except Exception as err:
       p_warn("Error while authenticating: %s" % (err.args[0]), exit=True)
 
@@ -261,7 +269,6 @@ def check_token_format(accesstoken, skypetoken):
 
    else:
       p_warn("Unknown access token format - If this error was raised by mistake, please reach out", exit=True)
-
 
 def get_authentication_metadata(account_type, username):
    """
@@ -341,14 +348,16 @@ def do_logon(args):
       else:
          p_warn(result.get("error_description"), exit=True)
 
+   refresh_token = result['refresh_token'] if 'refresh_token' in result else ''
+   
    # Login successful, Token is retrieved
    p_success("Successfully retrieved access token")
    teams_enrolled = account_is_teams_enrolled(result["access_token"], account_type.get('type'))
 
    skypetoken = None
    if account_type.get('type') == "personal":
-      result_tokenlogin = logon_with_accesstoken(auth_metadata, app)
+      result_tokenlogin = logon_with_accesstoken(auth_metadata, app, scope_list=["service::api.fl.spaces.skype.com::MBI_SSL openid profile"])
       skypetoken = get_skype_token(result_tokenlogin["access_token"])
       p_success("Successfully retrieved skype token")
 
-   return account_type.get('type'), result["access_token"], skypetoken, teams_enrolled
+   return account_type.get('type'), result["access_token"], skypetoken, teams_enrolled, refresh_token, app, auth_metadata
