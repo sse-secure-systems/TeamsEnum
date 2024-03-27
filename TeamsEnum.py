@@ -36,7 +36,7 @@ if __name__ == "__main__":
    Returns:
       None
    """
-   __version__ = "1.0.2"
+   __version__ = "1.0.3"
 
    banner(__version__)
    parser = argparse.ArgumentParser()
